@@ -1,13 +1,17 @@
+require("dotenv").config();
 const express = require("express");
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
-const axios = require("axios"); // npm install axios
-require("dotenv").config();
+const axios = require("axios");
 
 const app = express();
 app.use(express.json());
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ],
 });
 
 client.once("ready", () => {
@@ -18,26 +22,23 @@ app.post("/track_ip", async (req, res) => {
   const ip = req.body.ip;
   const userId = process.env.USER_ID;
   const channelId = process.env.CHANNEL_ID;
-  
+  const ipqsApiKey = process.env.IPQS_API_KEY;
+
   try {
-    // 1. Use ipdata.co to get location & VPN/proxy info
-    //    Make sure you have IPDATA_API_KEY in your .env
-    const ipdataApiKey = process.env.IPDATA_API_KEY;
     const response = await axios.get(
-      `https://api.ipdata.co/${ip}?api-key=${ipdataApiKey}`
+      `https://ipqualityscore.com/api/json/ip/${ipqsApiKey}/${ip}`
     );
     const data = response.data;
 
-    // 2. Extract region/country from ipdata's response
+    const country = data.country_code || "N/A";
     const region = data.region || "N/A";
-    const country = data.country_name || "N/A";
+    const proxy = data.proxy || false;
+    const vpn = data.vpn || false;
+    const tor = data.tor || false;
+    const botStatus = data.is_bot || false;
 
-    // 3. Detect VPN/Proxy/Tor using ipdata's "threat" object
-    //    (ipdata includes fields like is_tor, is_proxy, is_anonymous, etc.)
-    const { is_tor, is_proxy, is_anonymous } = data.threat || {};
-    const isVpn = Boolean(is_tor || is_proxy || is_anonymous);
+    const isVpnOrProxy = vpn || proxy || tor || botStatus;
 
-    // 4. Create Discord Embed for DM
     const user = await client.users.fetch(userId);
     const dmEmbed = new EmbedBuilder()
       .setColor("#0099ff")
@@ -47,14 +48,15 @@ app.post("/track_ip", async (req, res) => {
         { name: "IP Address", value: ip, inline: true },
         { name: "Region", value: region, inline: true },
         { name: "Country", value: country, inline: true },
-        { name: "Uses VPN/Proxy?", value: isVpn ? "Yes" : "No", inline: true }
+        { name: "VPN/Proxy/Tor?", value: isVpnOrProxy ? "Yes" : "No", inline: true }
       )
       .setTimestamp()
       .setFooter({ text: "Webhook Notification" });
 
+    // Send DM to the specified user
     await user.send({ embeds: [dmEmbed] });
 
-    // 5. Create Discord Embed for Channel
+    // Send a message to the specified channel
     const channel = await client.channels.fetch(channelId);
     if (channel) {
       const channelEmbed = new EmbedBuilder()
@@ -65,7 +67,7 @@ app.post("/track_ip", async (req, res) => {
           { name: "IP Address", value: ip, inline: true },
           { name: "Region", value: region, inline: true },
           { name: "Country", value: country, inline: true },
-          { name: "Uses VPN/Proxy?", value: isVpn ? "Yes" : "No", inline: true }
+          { name: "VPN/Proxy/Tor?", value: isVpnOrProxy ? "Yes" : "No", inline: true }
         )
         .setTimestamp()
         .setFooter({ text: "Webhook Notification" });
@@ -82,9 +84,11 @@ app.post("/track_ip", async (req, res) => {
   }
 });
 
+// Start the Express server
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`Express server listening on port ${PORT}`);
 });
 
+// Log in to Discord
 client.login(process.env.DISCORD_TOKEN);
