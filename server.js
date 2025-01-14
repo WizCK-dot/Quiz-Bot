@@ -1,14 +1,8 @@
 require("dotenv").config();
 const express = require("express");
-const {
-  Client,
-  GatewayIntentBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 const axios = require("axios");
+const { sendIpNotification } = require("./ipNotifier");
 
 const app = express();
 app.use(express.json());
@@ -41,56 +35,7 @@ app.post("/track_ip", async (req, res) => {
       throw new Error(data.message || "Failed to fetch IP data from IPQS");
     }
 
-    const {
-      region,
-      country_code,
-      proxy,
-      vpn,
-      tor,
-      bot_status,
-      latitude,
-      longitude,
-    } = data;
-
-    const isSuspicious = proxy || vpn || tor || bot_status;
-
-    const embedFields = [
-      { name: "IP Address", value: ip, inline: true },
-      { name: "Region", value: region || "N/A", inline: true },
-      { name: "Country", value: country_code || "N/A", inline: true },
-      { name: "VPN/Proxy/Tor/Bot?", value: isSuspicious ? "Yes" : "No", inline: true },
-    ];
-
-    const dmEmbed = new EmbedBuilder()
-      .setColor("#0099ff")
-      .setTitle("New IP Visit Notification")
-      .addFields(embedFields)
-      .setTimestamp()
-      .setFooter({ text: "Webhook Notification" });
-
-    const mapButtonRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setLabel("View Location")
-        .setStyle(ButtonStyle.Link)
-        .setURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`)
-    );
-
-    const user = await client.users.fetch(userId);
-    await user.send({ embeds: [dmEmbed], components: [mapButtonRow] });
-    const channel = await client.channels.fetch(channelId);
-    if (channel) {
-      const channelEmbed = new EmbedBuilder()
-        .setColor("#ff4500")
-        .setTitle("New IP Visit Detected")
-        .addFields(embedFields)
-        .setTimestamp()
-        .setFooter({ text: "Webhook Notification" });
-
-      await channel.send({
-        embeds: [channelEmbed],
-        components: [mapButtonRow],
-      });
-    }
+    await sendIpNotification(client, ip, data, userId, channelId);
 
     res.status(200).send("Notification sent to Discord!");
   } catch (error) {
