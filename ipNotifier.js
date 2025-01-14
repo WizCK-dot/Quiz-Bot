@@ -6,6 +6,24 @@ const {
 } = require("discord.js");
 
 /**
+ * Utility function to convert a two-letter country code into a Discord flag emoji.
+ *
+ * @param {string} countryCode - A two-letter ISO country code (e.g. "US", "GB").
+ * @returns {string} - The corresponding flag emoji or an empty string if invalid.
+ */
+function getFlagEmoji(countryCode) {
+  if (!countryCode || countryCode.length !== 2) return "";
+  
+  // Convert each letter to its regional indicator symbol
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map(char => 127397 + char.charCodeAt(0));
+  
+  return String.fromCodePoint(...codePoints);
+}
+
+/**
  * Sends an IP notification to a specific user (DM) and channel in Discord.
  *
  * @param {Client} client - An instance of Discord's Client.
@@ -26,12 +44,20 @@ async function sendIpNotification(client, ip, data, userId, channelId) {
     longitude,
   } = data;
 
+  const flagEmoji = getFlagEmoji(country_code);
+
   const isSuspicious = proxy || vpn || tor || bot_status;
 
   const embedFields = [
-    { name: "IP Address", value: ip, inline: true },
+    { name: "IP Address", value: ip || "N/A", inline: true },
     { name: "Region", value: region || "N/A", inline: true },
-    { name: "Country", value: country_code || "N/A", inline: true },
+    {
+      name: "Country",
+      value: country_code
+        ? `${country_code} ${flagEmoji}`
+        : "N/A",
+      inline: true,
+    },
     {
       name: "VPN/Proxy/Tor/Bot?",
       value: isSuspicious ? "Yes" : "No",
@@ -39,7 +65,6 @@ async function sendIpNotification(client, ip, data, userId, channelId) {
     },
   ];
 
-  // Create the DM embed
   const dmEmbed = new EmbedBuilder()
     .setColor("#0099ff")
     .setTitle("New IP Visit Notification")
@@ -47,7 +72,6 @@ async function sendIpNotification(client, ip, data, userId, channelId) {
     .setTimestamp()
     .setFooter({ text: "Webhook Notification" });
 
-  // Create the button for viewing location
   const mapButtonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setLabel("View Location")
@@ -60,6 +84,7 @@ async function sendIpNotification(client, ip, data, userId, channelId) {
   const user = await client.users.fetch(userId);
   await user.send({ embeds: [dmEmbed], components: [mapButtonRow] });
 
+  // Send to channel
   const channel = await client.channels.fetch(channelId);
   if (channel) {
     const channelEmbed = new EmbedBuilder()
