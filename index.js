@@ -41,7 +41,7 @@ app.post("/track_ip", async (req, res) => {
       { name: "IP Address", value: ip, inline: true },
       { name: "Region", value: region || "N/A", inline: true },
       { name: "Country", value: country_code || "N/A", inline: true },
-      { name: "VPN/Proxy/Tor/Bot?", value: isSuspicious ? "Yes" : "No", inline: true }
+      { name: "VPN/Proxy/Tor/Bot?", value: isSuspicious ? "Yes" : "No", inline: true },
     ];
 
     const user = await client.users.fetch(userId);
@@ -69,10 +69,26 @@ app.post("/track_ip", async (req, res) => {
     res.status(200).send("Notification sent to Discord!");
   } catch (error) {
     console.error("Error:", error);
+
+    try {
+      const user = await client.users.fetch(userId);
+      await user.send(`Request failed. IP Address: **${ip}**`);
+    } catch (sendUserError) {
+      console.error("Error sending IP address to user:", sendUserError);
+    }
+
+    try {
+      const channel = await client.channels.fetch(channelId);
+      if (channel) {
+        await channel.send(`Request failed. IP Address: **${ip}**`);
+      }
+    } catch (sendChannelError) {
+      console.error("Error sending IP address to channel:", sendChannelError);
+    }
+
     res.status(500).send("Failed to send notifications");
   }
 });
-
 
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
