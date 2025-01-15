@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const { Client, GatewayIntentBits } = require("discord.js");
 const axios = require("axios");
-const { sendIpNotification } = require("./ipNotifier");
+const { sendIpNotification } = require("./src/ipNotifier");
 
 const app = express();
 app.use(express.json());
