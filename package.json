@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "deploy": "node deploy-commands.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,8 @@
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "he": "^1.2.0",
+    "node-fetch": "^3.3.2",
     "nodemon": "^3.1.9"
   }
 }

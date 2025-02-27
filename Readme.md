@@ -1,97 +1,61 @@
+# Discord Quiz Bot
 
-# Discord IP Tracking Bot
-
-This repository contains a Discord bot built with `discord.js` and Express. It tracks IP addresses and sends notifications to a specified Discord user and channel using the IPQualityScore (IPQS) API.
+This is a Discord bot that provides a quiz game using questions from the Open Trivia Database API. Users can start a quiz and answer questions directly in Discord.
 
 ## Features
 
-- Fetches IP information using the IPQS API.
-- Sends detailed IP information to a Discord user and channel.
-- Detects suspicious IP activity (VPN, proxy, Tor, etc.).
-- Includes a button to view the IP's location on Google Maps.
+- Fetches random quiz questions from the Open Trivia Database.
+- Supports multiple-choice questions.
+- Provides feedback on correct and incorrect answers.
+- Restricts quiz commands to specific channels.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v16.9.0 or newer is required to use Discord.js v14).
-- A Discord bot token. [Create a bot](https://discord.com/developers/applications).
-- An IPQS API key. [Sign up for IPQualityScore](https://www.ipqualityscore.com/).
-- A `.env` file with the following environment variables:
+- Node.js (version 16.6.0 or higher)
+- A Discord bot token
+- A `.env` file with the following variables:
+  - `DISCORD_TOKEN`: Your Discord bot token.
+  - `CHANNEL_ID`: Comma-separated list of channel IDs where the bot is allowed to operate.
 
-```env
-DISCORD_TOKEN=your_discord_bot_token
-IPQS_API_KEY=your_ipqs_api_key
-USER_ID=discord_user_id_to_notify
-CHANNEL_ID=discord_channel_id_to_notify
-PORT=optional_port_for_express_server (default is 5050)
-```
+## Setup
 
-## Installation
-
-1. Clone this repository:
-
+1. Clone the repository:
    ```bash
-   git clone https://github.com/BJ-dev0706/IP-notification-discord_bot.git
-   cd IP-notification-discord_bot
+   git clone https://github.com/BJ-dev0706/discord-quiz-bot
+   cd discord-quiz-bot
    ```
 
-2. Install dependencies:
-
+2. Install the dependencies:
    ```bash
    npm install
    ```
 
-3. Create a `.env` file in the root of the project and add your environment variables:
+3. Create a `.env` file in the root directory and add your Discord bot token and allowed channel IDs:
+   ```
+   DISCORD_TOKEN=your_discord_token
+   CHANNEL_ID=channel_id1,channel_id2
+   ```
 
-   ```env
-   DISCORD_TOKEN=your_discord_bot_token
-   IPQS_API_KEY=your_ipqs_api_key
-   USER_ID=discord_user_id_to_notify
-   CHANNEL_ID=discord_channel_id_to_notify
-   PORT=optional_port_for_express_server (default is 5050)
+4. Start the bot:
+   ```bash
+   node server.js
    ```
 
 ## Usage
 
-1. Start the bot:
-
-   ```bash
-   npm start
-   ```
-
-2. Make a POST request to the `/track_ip` endpoint with the following JSON payload:
-
-   ```json
-   {
-     "ip": "8.8.8.8"
-   }
-   ```
-
-   Replace `8.8.8.8` with the IP address you want to track.
-
-3. The bot will send notifications to the specified Discord user and channel.
-
-## Example Notification
-
-### Direct Message to User
-- IP Address: 8.8.8.8
-- Region: California
-- Country: US
-- VPN/Proxy/Tor/Bot: No
-- View Location: [Google Maps Link](https://www.google.com/maps/search/?api=1&query=latitude,longitude)
-
-### Channel Message
-Similar to the DM notification, with an embed formatted for the channel.
+- **Start a Quiz**: Use the `/start_quiz` command in a designated channel to begin a quiz.
+- **Answer a Question**: Click on the button corresponding to your answer choice.
+- **View Leaderboard**: Use the `/leaderboard` command to view the leaderboard (functionality to be implemented).
 
 ## Contributing
 
-Feel free to open issues or submit pull requests for improvements and bug fixes. Contributions are welcome!
+Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
+## Acknowledgments
 
-### Disclaimer
-
-This bot is for educational purposes only. Always respect privacy and use responsibly.
+- [Open Trivia Database](https://opentdb.com/) for providing the quiz questions.
+- [Discord.js](https://discord.js.org/) for the Discord API library.
