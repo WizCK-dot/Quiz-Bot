@@ -8,35 +8,39 @@ This is a Discord bot that provides a quiz game using questions from the Open Tr
 - Supports multiple-choice questions.
 - Provides feedback on correct and incorrect answers.
 - Restricts quiz commands to specific channels.
+- Tracks user scores and displays a leaderboard.
 
 ## Prerequisites
 
-- Node.js (version 16.6.0 or higher)
-- A Discord bot token
-- A `.env` file with the following variables:
+- **Node.js**: Version 16.6.0 or higher is required.
+- **Discord Bot Token**: You need a Discord bot token to run the bot.
+- **MongoDB**: A MongoDB database is used to store user scores.
+- **Environment Variables**: A `.env` file with the following variables:
   - `DISCORD_TOKEN`: Your Discord bot token.
   - `CHANNEL_ID`: Comma-separated list of channel IDs where the bot is allowed to operate.
+  - `MONGODB_URI`: Connection string for your MongoDB database.
 
 ## Setup
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/BJ-dev0706/discord-quiz-bot
    cd discord-quiz-bot
    ```
 
-2. Install the dependencies:
+2. **Install the dependencies**:
    ```bash
    npm install
    ```
 
-3. Create a `.env` file in the root directory and add your Discord bot token and allowed channel IDs:
-   ```
+3. **Create a `.env` file** in the root directory and add your Discord bot token, allowed channel IDs, and MongoDB URI:
+   ```env
    DISCORD_TOKEN=your_discord_token
    CHANNEL_ID=channel_id1,channel_id2
+   MONGODB_URI=your_mongodb_uri
    ```
 
-4. Start the bot:
+4. **Start the bot**:
    ```bash
    node server.js
    ```
@@ -45,11 +49,11 @@ This is a Discord bot that provides a quiz game using questions from the Open Tr
 
 - **Start a Quiz**: Use the `/start_quiz` command in a designated channel to begin a quiz.
 - **Answer a Question**: Click on the button corresponding to your answer choice.
-- **View Leaderboard**: Use the `/leaderboard` command to view the leaderboard (functionality to be implemented).
+- **View Leaderboard**: Use the `/leaderboard` command to view the leaderboard.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes.
+Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes. Ensure your code follows the project's coding style and includes appropriate tests.
 
 ## License
 

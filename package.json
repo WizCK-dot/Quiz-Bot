@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "deploy": "node deploy-commands.js"
+    "deploy": "node src/deploy-commands.js"
   },
   "keywords": [],
   "author": "",
