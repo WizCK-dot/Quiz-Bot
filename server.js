@@ -12,8 +12,8 @@ const client = new Client({
 });
 
 const allowedChannelIds = process.env.CHANNEL_ID;
-const QUIZ_INTERVAL = 5 * 60 * 1000; // 5 minutes
-const QUIZ_DURATION = 4 * 60 * 1000; // 4 minutes
+const QUIZ_INTERVAL = 5 * 60 * 1000;
+const QUIZ_DURATION = 4 * 60 * 1000;
 
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -196,40 +196,14 @@ const postQuizQuestion = async (channel) => {
 
     const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: QUIZ_DURATION });
 
-    collector.on('collect', async (interaction) => {
-      const userId = interaction.user.id;
-      console.log(`Storing correct answer for user ${userId}: ${correct_answer}`);
-      userAnswers.set(userId, correct_answer);
-
-      const selectedOption = interaction.component.label;
-      const isCorrect = selectedOption.toLowerCase() === correct_answer.toLowerCase();
-
-      const embedResponse = new EmbedBuilder()
-        .setColor(isCorrect ? 0x00ff00 : 0xff0000)
-        .setTitle(isCorrect ? 'Correct!' : 'Incorrect!')
-        .setDescription(isCorrect 
-          ? "<:pepe_yes:1344583665899929640> You got it right!" 
-          : `<:pepe_no:1344583683075604510> The correct answer was: **${correct_answer}**`);
-
-      interaction.reply({ embeds: [embedResponse], flags: 64 });
-
-      const db = await connectToDatabase();
-      const collection = db.collection('userScores');
-      await collection.updateOne(
-        { userId },
-        {
-          $inc: { score: isCorrect ? 1 : 0 },
-          $push: { attempts: { isCorrect, timestamp: new Date() } }
-        },
-        { upsert: true }
-      );
-
-      userAnswers.delete(userId);
-    });
-
     collector.on('end', async () => {
       const disabledRow = new ActionRowBuilder().addComponents(
-        buttons.map(button => button.setDisabled(true))
+        buttons.map(button => {
+          if (button.label === correct_answer) {
+            return button.setStyle(ButtonStyle.Success).setDisabled(true);
+          }
+          return button.setDisabled(true);
+        })
       );
       await message.edit({ components: [disabledRow] });
     });
