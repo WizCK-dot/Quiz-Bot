@@ -14,6 +14,15 @@ const allowedChannelIds = process.env.CHANNEL_ID.split(',');
 
 client.once("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
+
+  const channel = client.channels.cache.get(allowedChannelIds[0]);
+  if (channel) {
+    setInterval(() => {
+      postQuizQuestion(channel);
+    }, 5 * 60 * 1000);
+  } else {
+    console.error("Channel not found or bot does not have access.");
+  }
 });
 
 const fetchQuizQuestion = async () => {
@@ -56,6 +65,7 @@ client.on("interactionCreate", async (interaction) => {
           const decodedQuestion = he.decode(quizQuestion);
           const decodedOptions = options.map(option => he.decode(option));
 
+          console.log(`Storing correct answer for user ${interaction.user.id}: ${correct_answer}`);
           userAnswers.set(interaction.user.id, correct_answer);
 
           const buttons = decodedOptions.map((option, index) => 
@@ -87,6 +97,8 @@ client.on("interactionCreate", async (interaction) => {
       const userId = interaction.user.id;
       const correctAnswer = userAnswers.get(userId);
 
+      console.log(`Retrieved answer for user ${userId}: ${correctAnswer}`);
+
       if (correctAnswer) {
         const selectedOption = interaction.component.label;
 
@@ -110,5 +122,45 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 });
+
+const postQuizQuestion = async (channel) => {
+  const question = await fetchQuizQuestion();
+  if (question) {
+    const { question: quizQuestion, correct_answer, incorrect_answers } = question;
+    const options = [correct_answer, ...incorrect_answers].sort(() => Math.random() - 0.5);
+
+    const decodedQuestion = he.decode(quizQuestion);
+    const decodedOptions = options.map(option => he.decode(option));
+
+    const buttons = decodedOptions.map((option, index) => 
+      new ButtonBuilder()
+        .setCustomId(`answer_${index}`)
+        .setLabel(option)
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    const row = new ActionRowBuilder().addComponents(buttons);
+
+    const embed = new EmbedBuilder()
+      .setColor(0x0099ff)
+      .setTitle('🎉 Quiz Time! 🎉')
+      .setDescription(`**Question:**\n${decodedQuestion}`)
+      .setFooter({ text: 'Choose an option below:' });
+
+    const message = await channel.send({
+      embeds: [embed],
+      components: [row],
+    });
+
+    setTimeout(async () => {
+      const disabledRow = new ActionRowBuilder().addComponents(
+        buttons.map(button => button.setDisabled(true))
+      );
+      await message.edit({ components: [disabledRow] });
+    }, 4 * 60 * 1000);
+  } else {
+    console.error("Failed to fetch a quiz question.");
+  }
+};
 
 client.login(process.env.DISCORD_TOKEN); 
