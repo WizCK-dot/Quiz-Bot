@@ -1,11 +1,5 @@
 require("dotenv").config();
-const express = require("express");
-const { Client, GatewayIntentBits } = require("discord.js");
-const axios = require("axios");
-const { sendIpNotification } = require("./src/ipNotifier");
-
-const app = express();
-app.use(express.json());
+const { Client, GatewayIntentBits, REST, Routes } = require("discord.js");
 
 const client = new Client({
   intents: [
@@ -19,51 +13,33 @@ client.once("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-app.post("/track_ip", async (req, res) => {
-  const ip = req.body.ip;
-  const userId = process.env.USER_ID;
-  const channelId = process.env.CHANNEL_ID;
-  const ipqsApiKey = process.env.IPQS_API_KEY;
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
 
-  try {
-    const response = await axios.get(
-      `https://ipqualityscore.com/api/json/ip/${ipqsApiKey}/${ip}`
-    );
-    const data = response.data;
+  const { commandName } = interaction;
 
-    if (!data.success) {
-      throw new Error(data.message || "Failed to fetch IP data from IPQS");
-    }
+  if (commandName === "start_quiz") {
 
-    await sendIpNotification(client, ip, data, userId, channelId);
+    await interaction.reply("Starting a new quiz session!");
+  } else if (commandName === "answer") {
 
-    res.status(200).send("Notification sent to Discord!");
-  } catch (error) {
-    console.error("Error:", error);
+    await interaction.reply("Answer received!");
+  } else if (commandName === "leaderboard") {
 
-    try {
-      const user = await client.users.fetch(userId);
-      await user.send(`Request failed. IP Address: **${ip}**`);
-    } catch (sendUserError) {
-      console.error("Error sending IP address to user:", sendUserError);
-    }
+    await interaction.reply("Here is the leaderboard!");
+  } else if (commandName === "skip_question") {
 
-    try {
-      const channel = await client.channels.fetch(channelId);
-      if (channel) {
-        await channel.send(`Request failed. IP Address: **${ip}**`);
-      }
-    } catch (sendChannelError) {
-      console.error("Error sending IP address to channel:", sendChannelError);
-    }
+    await interaction.reply("Question skipped!");
+  } else if (commandName === "set_category") {
 
-    res.status(500).send("Failed to send notifications");
+    await interaction.reply("Category set!");
+  } else if (commandName === "set_difficulty") {
+
+    await interaction.reply("Difficulty set!");
+  } else if (commandName === "end_quiz") {
+
+    await interaction.reply("Quiz ended!");
   }
 });
 
-const PORT = process.env.PORT || 5050;
-app.listen(PORT, () => {
-  console.log(`Express server listening on port ${PORT}`);
-});
-
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN); 
