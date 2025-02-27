@@ -13,7 +13,7 @@ const client = new Client({
 
 const allowedChannelIds = process.env.CHANNEL_ID;
 const QUIZ_INTERVAL = 5 * 60 * 1000;
-const QUIZ_DURATION = 4 * 60 * 1000;
+// const QUIZ_INTERVAL = 5000;
 
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -181,31 +181,24 @@ const postQuizQuestion = async (channel) => {
     const decodedQuestion = he.decode(quizQuestion);
     const decodedOptions = options.map(option => he.decode(option));
 
-    const buttons = createOptionButtons(decodedOptions);
+    const buttons = decodedOptions.map(option => {
+      const isCorrect = option === correct_answer;
+      return new ButtonBuilder()
+        .setCustomId(`answer_${option}`)
+        .setLabel(option)
+        .setStyle(isCorrect ? ButtonStyle.Success : ButtonStyle.Danger)
+        .setDisabled(true);
+    });
 
     const embed = new EmbedBuilder()
       .setColor(0x0099ff)
       .setTitle('🎉 Quiz Time! 🎉')
       .setDescription(`**Question:**\n${decodedQuestion}`)
-      .setFooter({ text: 'Choose an option below:' });
+      .setFooter({ text: 'Correct answer is shown below:' });
 
-    const message = await channel.send({
+    await channel.send({
       embeds: [embed],
-      components: [buttons],
-    });
-
-    const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: QUIZ_DURATION });
-
-    collector.on('end', async () => {
-      const disabledRow = new ActionRowBuilder().addComponents(
-        buttons.map(button => {
-          if (button.label === correct_answer) {
-            return button.setStyle(ButtonStyle.Success).setDisabled(true);
-          }
-          return button.setDisabled(true);
-        })
-      );
-      await message.edit({ components: [disabledRow] });
+      components: [new ActionRowBuilder().addComponents(buttons)],
     });
   } else {
     console.error("Failed to fetch a quiz question.");
