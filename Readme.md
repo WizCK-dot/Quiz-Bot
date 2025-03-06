@@ -2,6 +2,8 @@
 
 This is a Discord bot that provides a quiz game using questions from the Open Trivia Database API. Users can start a quiz and answer questions directly in Discord.
 
+![Quiz Bot](./assets/banner.jpeg)
+
 ## Features
 
 - Fetches random quiz questions from the Open Trivia Database.
